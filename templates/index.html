@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Trainer Analyzer</title>
+        <style>
+            body {
+                font-family: sans-serif;
+                max-width: 600px;
+                margin: 40px auto;
+                padding: 20px;
+                background: #f4f4f4;
+            }
+            h1 {
+                text-align: center;
+            }
+            label {
+                display: block;
+                margin-top: 10px;
+            }
+            input,
+            select,
+            textarea,
+            button {
+                width: 100%;
+                padding: 8px;
+                margin-top: 5px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+            button {
+                background: #28a745;
+                color: white;
+                font-weight: bold;
+                cursor: pointer;
+            }
+            button:hover {
+                background: #218838;
+            }
+            #result {
+                white-space: pre-wrap;
+                background: white;
+                padding: 10px;
+                margin-top: 20px;
+                border-radius: 5px;
+                border: 1px solid #ccc;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>🚴‍♂️ Trainer Analyzer</h1>
+
+        <label for="age">Age</label>
+        <input type="number" id="age" value="55" />
+
+        <label for="weight">Weight (kg)</label>
+        <input type="number" id="weight" value="120" />
+
+        <label for="ftp">FTP (optional)</label>
+        <input type="number" id="ftp" placeholder="e.g. 114" />
+
+        <label for="goal">Goal</label>
+        <select id="goal">
+            <option>lose weight</option>
+            <option selected>recover fitness progressively</option>
+            <option>build endurance</option>
+        </select>
+
+        <label for="time">Available Time (minutes)</label>
+        <input type="number" id="time" value="60" />
+
+        <label for="injury">Recent Injury (optional)</label>
+        <textarea
+            id="injury"
+            placeholder="e.g. Shoulder fracture in January"
+        ></textarea>
+
+        <button onclick="getWorkout()">Get Workout Suggestion</button>
+
+        <div id="result"></div>
+
+        <script>
+            async function getWorkout() {
+                const profile = {
+                    age: Number(document.getElementById("age").value),
+                    weight_kg: Number(document.getElementById("weight").value),
+                    ftp:
+                        Number(document.getElementById("ftp").value) ||
+                        undefined,
+                    goal: document.getElementById("goal").value,
+                    available_time: Number(
+                        document.getElementById("time").value,
+                    ),
+                    injury_history:
+                        document.getElementById("injury").value || "None",
+                    gender: "male",
+                    height_cm: 188,
+                    ctl: 22,
+                    atl: 30,
+                    tsb: -8,
+                    equipment: "indoor smart trainer",
+                    terrain: "flat",
+                };
+
+                const response = await fetch(
+                    "http://127.0.0.1:5000/suggestion",
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            profile: profile,
+                            model: "deepseek-r1:14b",
+                        }),
+                        mode: "cors",
+                    },
+                );
+
+                const data = await response.json();
+                document.getElementById("result").textContent =
+                    data.suggestion || "Something went wrong...";
+            }
+        </script>
+    </body>
+</html>

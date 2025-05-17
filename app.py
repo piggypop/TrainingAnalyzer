@@ -1,55 +1,34 @@
-from flask import Flask, request, jsonify
-import requests
-from datetime import date
+from flask import Flask, request, jsonify, render_template
+from ai import generate_workout
 
 app = Flask(__name__)
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "mistral"  # Άλλαξε το αν χρησιμοποιείς άλλο μοντέλο
+@app.route("/")
+def index():
+    return render_template("index.html")
 
-def call_ollama(prompt):
-    payload = {
-        "model": OLLAMA_MODEL,
-        "prompt": prompt,
-        "stream": False
-    }
-    try:
-        response = requests.post(OLLAMA_URL, json=payload)
-        response.raise_for_status()
-        data = response.json()
-        return data.get("response", "No response from model.")
-    except Exception as e:
-        return f"Error: {e}"
-
-@app.route("/suggestion", methods=["POST"])
+@app.route("/suggestion", methods=["POST", "OPTIONS"])
 def get_suggestion():
+    if request.method == "OPTIONS":
+        response = jsonify({})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type")
+        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+        return response, 200
+
     data = request.get_json()
-    ctl = data.get("ctl")
-    atl = data.get("atl")
-    tsb = data.get("tsb")
-    fitness_goal = data.get("goal", "lose weight and improve aerobic fitness")
+    profile = data.get("profile")
+    model = data.get("model", "deepseek-r1:14b")
 
-    today = date.today().isoformat()
+    if not profile:
+        response = jsonify({"error": "Missing athlete profile."})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response, 400
 
-    prompt = f"""You are a professional cycling coach. Based on the following athlete data, generate a structured workout plan for TODAY in a concise, clear format.
-
-Date: {today}
-CTL: {ctl}
-ATL: {atl}
-TSB: {tsb}
-Goal: {fitness_goal}
-
-Return the workout in this format:
-- Title with today's date and goal
-- List warm-up, intervals, cool-down
-- Each step should have: duration, intensity zone (e.g., Zone 2), notes
-- Add tips for hydration, cadence, and recovery
-- Make it brief and ready for execution. Avoid long explanations.
-
-Workout:"""
-
-    suggestion = call_ollama(prompt)
-    return jsonify({"suggestion": suggestion})
+    suggestion = generate_workout(profile, model)
+    response = jsonify({"suggestion": suggestion})
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
 if __name__ == "__main__":
     app.run(debug=True)

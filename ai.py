@@ -21,29 +21,26 @@ def generate_workout(profile: dict, model: str = "deepseek-r1:14b") -> str:
 
 def build_prompt(profile: dict) -> str:
     return f"""
-You are an experienced cycling coach AI.
+You are a cycling coach AI.
 
-Based on the athlete's current condition, please suggest one specific workout for today. Your response should be clear and structured, like you’re giving instructions to a real cyclist.
+Please generate a short and actionable workout suggestion for today, in 6 clear and useful lines maximum.
+Avoid over-explaining. Do not provide analysis. No commentary. No '<think>' section.
 
-Here is the athlete’s current profile and metrics:
+Here is the athlete’s data:
 - Age: {profile.get("age", "N/A")}
 - Gender: {profile.get("gender", "N/A")}
 - Height: {profile.get("height_cm", "N/A")} cm
 - Weight: {profile.get("weight_kg", "N/A")} kg
 - FTP: {profile.get("ftp", "N/A")}W
-- Recent Injury: {profile.get("injury_history", "None")}
+- Injury: {profile.get("injury_history", "None")}
 - Goal: {profile.get("goal", "N/A")}
-- Training Availability: {profile.get("available_time", "N/A")} minutes today
-- CTL (Fitness): {profile.get("ctl", "N/A")}
-- ATL (Fatigue): {profile.get("atl", "N/A")}
-- TSB (Form): {profile.get("tsb", "N/A")}
+- Time available today: {profile.get("available_time", "N/A")} minutes
+- CTL: {profile.get("ctl", "N/A")}
+- ATL: {profile.get("atl", "N/A")}
+- TSB: {profile.get("tsb", "N/A")}
 - Equipment: {profile.get("equipment", "N/A")}
 - Terrain: {profile.get("terrain", "N/A")}
 
-📝 Please provide:
-1. Workout Type (e.g., endurance ride, recovery, low cadence drills)
-2. Duration
-3. Intensity (use power zones, HR zones, or RPE)
-4. Detailed Instructions (intervals, cadence, posture cues, etc.)
-5. Purpose (1-2 sentences explaining the rationale behind the session)
+Format it as a clean workout plan with bullet points.
+Use short phrases and make it instantly actionable.
 """.strip()
